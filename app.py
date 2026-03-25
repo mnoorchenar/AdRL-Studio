@@ -41,12 +41,7 @@ CONTEXT_DIM   = len(AGE_GROUPS) + len(DEVICES) + len(TIMES_OF_DAY) + len(CONTENT
 
 N_ADS = 20
 AD_IDS = [f"ad_{i:02d}" for i in range(1, 21)]
-AD_CATEGORIES = {ad: cat for cat in ["Tech","Fashion","Finance","Food","Travel"]
-                 for ad in [f"ad_{i:02d}" for i in range(AD_IDS.index(
-                     [a for a in AD_IDS if True][["Tech","Fashion","Finance","Food","Travel"].index(cat)*4])+1,
-                     ["Tech","Fashion","Finance","Food","Travel"].index(cat)*4+5)]}
-
-# Rebuild clean category mapping
+# Category mapping
 AD_CAT_MAP = {}
 for i, ad in enumerate(AD_IDS):
     cats = ["Tech","Fashion","Finance","Food","Travel"]
@@ -132,7 +127,13 @@ class EpsilonGreedyNeuralBandit:
         eps = max(self.epsilon_min, self.epsilon_0 * (self.decay ** self.t))
         if np.random.rand() < eps:
             return int(np.random.randint(N_ADS))
-        return int(np.argmax([self._pred(ctx, a) for a in range(N_ADS)]))
+        ctx_rep = np.tile(ctx, (N_ADS, 1))
+        ad_eye  = np.eye(N_ADS, dtype=np.float32)
+        batch   = torch.FloatTensor(np.hstack([ctx_rep, ad_eye]))
+        self.model.eval()
+        with torch.no_grad():
+            scores = self.model(batch).squeeze().numpy()
+        return int(np.argmax(scores))
 
     def predict_ctr(self, ctx, ad_idx):
         return self._pred(ctx, ad_idx)
@@ -219,28 +220,31 @@ class LinUCBBandit:
 
     def reset(self):
         d = CONTEXT_DIM
-        self.A = [np.identity(d) for _ in range(N_ADS)]
-        self.b = [np.zeros(d)    for _ in range(N_ADS)]
+        self.A     = [np.identity(d) for _ in range(N_ADS)]
+        self.A_inv = [np.identity(d) for _ in range(N_ADS)]
+        self.b     = [np.zeros(d)    for _ in range(N_ADS)]
         self.n_updates = 0
 
     def _ucb_score(self, ctx, ad_idx):
-        A_inv  = np.linalg.inv(self.A[ad_idx])
-        theta  = A_inv @ self.b[ad_idx]
-        x      = ctx
+        A_inv = self.A_inv[ad_idx]
+        theta = A_inv @ self.b[ad_idx]
+        x     = ctx
         return float(theta @ x + self.alpha * math.sqrt(max(float(x @ A_inv @ x), 0.0)))
 
     def select(self, ctx):
         return int(np.argmax([self._ucb_score(ctx, a) for a in range(N_ADS)]))
 
     def predict_ctr(self, ctx, ad_idx):
-        A_inv = np.linalg.inv(self.A[ad_idx])
-        return float((A_inv @ self.b[ad_idx]) @ ctx)
+        return float((self.A_inv[ad_idx] @ self.b[ad_idx]) @ ctx)
 
     def update(self, ctx, action, reward):
-        x = ctx
-        self.A[action] += np.outer(x, x)
-        self.b[action] += reward * x
-        self.n_updates += 1
+        x   = ctx
+        Ai  = self.A_inv[action]
+        Aix = Ai @ x
+        self.A_inv[action] = Ai - np.outer(Aix, Aix) / (1.0 + x @ Aix)
+        self.A[action]    += np.outer(x, x)
+        self.b[action]    += reward * x
+        self.n_updates    += 1
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -832,8 +836,8 @@ async function loadHeatmap() {
   }, {responsive:true});
 }
 
-// Auto-load heatmap on page load
-loadHeatmap();
+// Auto-load heatmap once the page is fully ready
+document.addEventListener('DOMContentLoaded', function() { loadHeatmap(); });
 </script>
 </body>
 </html>"""
@@ -903,7 +907,6 @@ def api_simulate():
             sim_state['total']   = n_impressions
 
         rewards    = {k: [] for k in ALGO_KEYS}
-        oracle_rew = []
         checkpoint_interval = 50
 
         # Per-checkpoint rolling window (last 100 impressions)
@@ -911,20 +914,25 @@ def api_simulate():
         rolling_ctr_series = {k: [] for k in ALGO_KEYS}
         steps_series = []
 
+        # Incremental cumulative regret (avoids O(n²) post-loop recomputation)
+        cum_regret       = {k: 0.0 for k in ALGO_KEYS}
+        cum_regret_series = {k: [] for k in ALGO_KEYS}
+
         for t in range(n_impressions):
             ctx = sample_random_context()
 
-            # Oracle best arm
-            oracle_idx  = int(np.argmax([true_ctr(a, ctx) for a in range(N_ADS)]))
-            oracle_r    = int(np.random.rand() < true_ctr(oracle_idx, ctx))
-            oracle_rew.append(oracle_r)
+            # Vectorized oracle best arm
+            all_ctrs   = np.clip(_sigmoid(_TRUE_WEIGHTS @ ctx), 0.02, 0.25)
+            oracle_idx = int(np.argmax(all_ctrs))
+            oracle_r   = int(np.random.rand() < all_ctrs[oracle_idx])
 
             # Each algorithm selects, receives reward, updates
             for k, algo in algorithms.items():
                 act = algo.select(ctx)
-                r   = int(np.random.rand() < true_ctr(act, ctx))
+                r   = int(np.random.rand() < all_ctrs[act])
                 algo.update(ctx, act, r)
                 rewards[k].append(r)
+                cum_regret[k] += oracle_r - r
 
             # Checkpoint every `checkpoint_interval` steps
             if (t + 1) % checkpoint_interval == 0 or t == n_impressions - 1:
@@ -933,6 +941,7 @@ def api_simulate():
                     start = max(0, len(rewards[k]) - rolling_window)
                     window = rewards[k][start:]
                     rolling_ctr_series[k].append(round(sum(window) / len(window), 4))
+                    cum_regret_series[k].append(round(cum_regret[k], 4))
 
                 with sim_lock:
                     sim_state['step'] = t + 1
@@ -948,17 +957,6 @@ def api_simulate():
         final_ctr  = {k: round(sum(rewards[k]) / len(rewards[k]), 4) for k in ALGO_KEYS}
         total_rew  = {k: int(sum(rewards[k])) for k in ALGO_KEYS}
         n_upd      = {k: algorithms[k].n_updates for k in ALGO_KEYS}
-
-        # Compute regret series (checkpointed at checkpoint_interval)
-        cum_regret_series = {k: [] for k in ALGO_KEYS}
-        for ci, step in enumerate(steps_series):
-            end = step
-            start_ci = (ci * checkpoint_interval) if ci > 0 else 0
-            for k in ALGO_KEYS:
-                slice_oracle = oracle_rew[:end]
-                slice_algo   = rewards[k][:end]
-                cum_regret   = sum(o - a for o, a in zip(slice_oracle, slice_algo))
-                cum_regret_series[k].append(round(cum_regret, 4))
 
         # Store for /api/regret
         with sim_lock:
