@@ -238,8 +238,8 @@ Distributed under the **MIT License**.
 
 <img src="https://capsule-render.vercel.app/api?type=waving&color=0:3b82f6,100:4f46e5&height=120&section=footer&text=Made%20with%20%E2%9D%A4%EF%B8%8F%20by%20Mohammad%20Noorchenarboo&fontColor=ffffff&fontSize=18&fontAlignY=80" width="100%"/>
 
-[![GitHub Stars](https://img.shields.io/github/stars/mnoorchenar/AdRL-Studio?style=social)](https://github.com/mnoorchenar/AdRL-Studio/stargazers)
-[![GitHub Forks](https://img.shields.io/github/forks/mnoorchenar/AdRL-Studio?style=social)](https://github.com/mnoorchenar/AdRL-Studio/fork)
+[![Star on GitHub](https://img.shields.io/badge/%E2%AD%90_Star-on_GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/mnoorchenar/AdRL-Studio/stargazers)
+[![Fork on GitHub](https://img.shields.io/badge/%F0%9F%8D%B4_Fork-on_GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/mnoorchenar/AdRL-Studio/fork)
 
 <sub>The name "AdRL Studio" is used purely for academic and research purposes. Any similarity to existing product names or trademarks is entirely coincidental. This project has no affiliation with any commercial entity.</sub>
 
