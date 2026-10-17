@@ -17,8 +17,12 @@ pinned: false
 [![Python](https://img.shields.io/badge/Python-3.10+-3b82f6?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![Flask](https://img.shields.io/badge/Flask-2.x-4f46e5?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-3b82f6?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![HuggingFace](https://img.shields.io/badge/HuggingFace-Spaces-ffcc00?style=for-the-badge&logo=huggingface&logoColor=black)](https://huggingface.co/mnoorchenar/spaces)
 [![Status](https://img.shields.io/badge/Status-Active-22c55e?style=for-the-badge)](#)
+
+<br/>
+
+[![Live Demo](https://img.shields.io/badge/%E2%96%B6_Live_Demo-Hugging_Face_Space-ffcc00?style=for-the-badge&logo=huggingface&logoColor=black)](https://huggingface.co/spaces/mnoorchenar/AdRL-Studio)
+[![Source Code](https://img.shields.io/badge/Source_Code-GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/mnoorchenar/AdRL-Studio)
 
 <br/>
 
@@ -41,7 +45,7 @@ pinned: false
 - [Project Structure](#-project-structure)
 - [Author](#-author)
 - [Contributing](#-contributing)
-- [Disclaimer](#disclaimer)
+- [Disclaimer](#️-disclaimer)
 - [License](#-license)
 
 ---
@@ -64,10 +68,6 @@ pinned: false
   <tr>
     <td>⚖ <b>A/B Test Simulator</b></td>
     <td>Run 50/50 traffic splits with two-proportion z-test, p-value, confidence intervals, and statistical significance verdict</td>
-  </tr>
-  <tr>
-    <td>🔒 <b>Secure by Design</b></td>
-    <td>Role-based access, audit logs, encrypted data pipelines</td>
   </tr>
   <tr>
     <td>🐳 <b>Containerized Deployment</b></td>
@@ -102,7 +102,6 @@ pinned: false
 ### Prerequisites
 
 - Python 3.10+
-- Docker & Docker Compose
 - Git
 
 ### Local Installation
@@ -119,11 +118,7 @@ source venv/bin/activate  # Windows: venv\Scripts\activate
 # 3. Install dependencies
 pip install -r requirements.txt
 
-# 4. Configure environment variables
-cp .env.example .env
-# Edit .env with your settings
-
-# 5. Run the application
+# 4. Run the application
 python app.py
 ```
 
@@ -134,12 +129,10 @@ Open your browser at `http://localhost:7860` 🎉
 ## 🐳 Docker Deployment
 
 ```bash
-# Build and run with Docker Compose
-docker compose up --build
 
-# Or pull and run the pre-built image
-docker pull mnoorchenar/AdRL-Studio
-docker run -p 7860:7860 mnoorchenar/AdRL-Studio
+docker build -t adrl-studio .
+
+docker run -p 7860:7860 adrl-studio
 ```
 
 ---
@@ -177,14 +170,10 @@ models = {
 ```
 AdRL-Studio/
 │
-├── 📄 app.py               # Complete Flask application — all logic, templates, and API
-├── 📄 Dockerfile           # Container definition (python:3.10-slim, port 7860)
-├── 📄 requirements.txt     # Python dependencies
-└── 📄 README.md            # This file
+├── 📄 Dockerfile                 # Container definition (python:3.10-slim, port 7860)
+├── 📄 app.py                     # Complete Flask application — all logic, templates, and API
+└── 📄 requirements.txt           # Python dependencies
 ```
-
-> All application logic, HTML templates, CSS, and JavaScript live inside `app.py`
-> using Flask's `render_template_string`. There are no external static files.
 
 ---
 
@@ -208,7 +197,7 @@ AdRL-Studio/
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/mnoorchenar)&nbsp;
 [![Personal Site](https://img.shields.io/badge/Website-mnoorchenar.github.io-4f46e5?style=for-the-badge&logo=githubpages&logoColor=white)](https://mnoorchenar.github.io/)&nbsp;
-[![HuggingFace](https://img.shields.io/badge/HuggingFace-ffcc00?style=for-the-badge&logo=huggingface&logoColor=black)](https://huggingface.co/mnoorchenar/spaces)&nbsp;
+[![HuggingFace](https://img.shields.io/badge/HuggingFace-ffcc00?style=for-the-badge&logo=huggingface&logoColor=black)](https://huggingface.co/mnoorchenar)&nbsp;
 [![Google Scholar](https://img.shields.io/badge/Scholar-4285F4?style=for-the-badge&logo=googlescholar&logoColor=white)](https://scholar.google.ca/citations?user=nn_Toq0AAAAJ&hl=en)&nbsp;
 [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/mnoorchenar)
 
@@ -232,15 +221,16 @@ Contributions are welcome! Please follow these steps:
 
 ---
 
-## Disclaimer
+## ⚠️ Disclaimer
 
-<span style="color:red">This project is developed strictly for educational and research purposes and does not constitute professional advice of any kind. All datasets used are either synthetically generated or publicly available — no real user data is stored. This software is provided "as is" without warranty of any kind; use at your own risk.</span>
+> [!WARNING]
+> This project is developed strictly for educational and research purposes and does not constitute professional advice of any kind. All datasets used are either synthetically generated or publicly available — no real user data is stored. This software is provided "as is" without warranty of any kind; use at your own risk.
 
 ---
 
 ## 📜 License
 
-Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for more information.
+Distributed under the **MIT License**.
 
 ---
 
@@ -248,9 +238,9 @@ Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for more informa
 
 <img src="https://capsule-render.vercel.app/api?type=waving&color=0:3b82f6,100:4f46e5&height=120&section=footer&text=Made%20with%20%E2%9D%A4%EF%B8%8F%20by%20Mohammad%20Noorchenarboo&fontColor=ffffff&fontSize=18&fontAlignY=80" width="100%"/>
 
-[![GitHub Stars](https://img.shields.io/github/stars/mnoorchenar/AdRL-Studio?style=social)](https://github.com/mnoorchenar/AdRL-Studio)
+[![GitHub Stars](https://img.shields.io/github/stars/mnoorchenar/AdRL-Studio?style=social)](https://github.com/mnoorchenar/AdRL-Studio/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/mnoorchenar/AdRL-Studio?style=social)](https://github.com/mnoorchenar/AdRL-Studio/fork)
 
-<sub>The name "AdRL Studio" is used purely for academic and research purposes. Any similarity to existing company names, products, or trademarks is entirely coincidental and unintentional. This project has no affiliation with any commercial entity.</sub>
+<sub>The name "AdRL Studio" is used purely for academic and research purposes. Any similarity to existing product names or trademarks is entirely coincidental. This project has no affiliation with any commercial entity.</sub>
 
 </div>
